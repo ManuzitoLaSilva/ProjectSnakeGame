@@ -1,0 +1,179 @@
+import pygame
+import random
+import sys
+
+pygame.init()
+
+largura = 1300
+altura = 650
+
+SnakeVelo = 15
+SnakePos = [(300, 300)]
+BodySnake, AltSnake = [20, 20]
+Move = [1, 0]
+
+coinLargura = 15
+coinAltura = 15
+coinPos1 = random.randint(35, 1210)
+coinPos2 = random.randint(35, 620)
+
+Points = int()
+Money = int(400000)
+
+ProletarioAttackLarg = 15
+ProletarioAttackAlt = 15
+ProletarioAttackPoss1 = [1230, 20]
+
+AplicationPoss = [random.randint(30, 1210), random.randint(30, 570)]
+AplicationLarg = 15
+AplicationAlt = 15
+
+screen = pygame.display.set_mode((largura, altura))
+pygame.display.set_caption("Snake Capitalist")
+
+cor1 = random.randint(0, 255)
+cor2 = random.randint(0, 255)
+cor3 = random.randint(0, 255)
+cor = cor1, cor2, cor3
+
+def CheckColl (Cabeca, moeda):
+    return Cabeca.colliderect(moeda)
+
+def CheckCapColission (SnakeCabeza, SnakeCuerpo):
+    return any(SnakeCabeza == segmento for segmento in SnakeCuerpo)
+
+def CheckComunisCollsion (SnakeCranio, Counism):
+    return SnakeCranio.colliderect(Counism)
+
+ContadorCoin = pygame.font.Font(None, 37)
+
+ContadorMoney = pygame.font.Font(None, 37)
+
+def ComunismTalke():
+    global ProletarioAttackPoss1
+    SnakeCranio = SnakePos
+
+    if ProletarioAttackPoss1[0] < SnakeCranio[0][0]:
+        ProletarioAttackPoss1[0] += 6.3 #Essas cordenadas indicam movimentos para a direita
+    if ProletarioAttackPoss1[0] > SnakeCranio[0][0]:
+        ProletarioAttackPoss1[0] -= 6.3 #Essas cordenadas indicam movimentos para a esquerda
+
+    if ProletarioAttackPoss1[1] < SnakeCranio[0][1]:
+        ProletarioAttackPoss1[1] += 6.3 #Essas cordenadas indicam movimentos pra baixo
+    if ProletarioAttackPoss1[1] > SnakeCranio[0][1]:
+        ProletarioAttackPoss1[1] -= 6.3 #Essas cordenadas indicam movimentos pra cima
+
+    # Abaixo os Limites de movimentção do Attack Comuna
+    if ProletarioAttackPoss1[0] < 0: ProletarioAttackPoss1[0] = 0 #Os comunas vão apenas ate o ponto 0 da tela na direção esquerda
+    if ProletarioAttackPoss1[1] < 0: ProletarioAttackPoss1[1] = 0 #Os comunas vão apenas ate o ponto 0 da tela no ponto de cima
+
+    if ProletarioAttackPoss1[0] > largura - ProletarioAttackLarg:#/
+          ProletarioAttackPoss1[0] = ProletarioAttackPoss1[0] = largura - ProletarioAttackLarg #Os comunas vão ate o ponto final do lado direito que é 1300 - O seu tamanho
+    if ProletarioAttackPoss1[1] > altura - ProletarioAttackAlt:
+          ProletarioAttackPoss1[1] = ProletarioAttackPoss1[1] = altura - ProletarioAttackAlt #Os comunas vão ate o ponto inferior da tela que é 650 - O seu tamanho
+
+def Invest(CabezaSnake, CapMaster):
+    return CabezaSnake.colliderect(CapMaster)
+
+ComunasAtacaram = 0
+PausaPraMortadela = 10 * 1000
+RevolucionarisProntos = True
+
+#while not False: tambem pode ser usado, como roda principal do loop inicial.
+while True:
+    screen.fill(cor)
+
+    contadorcoin = ContadorCoin.render(f'Moedas: {Points}', True, (255, 255, 0))
+    posicaoA = (1110, 620)
+    screen.blit(contadorcoin, posicaoA)
+
+    contadormoney = ContadorMoney.render(f'Cash ${Money:.0f}', True, (0, 255, 0))
+    posicaoB = (30, 620)
+    screen.blit(contadormoney, posicaoB)
+
+    Coin = pygame.font.Font(None, 36)
+    Muney = pygame.font.Font(None, 36)
+
+    NewHead = (SnakePos[0][0] + Move[0], SnakePos[0][1]+ Move[1])
+    SnakePos = [NewHead] + SnakePos
+
+    ComunismTalke()
+
+    Snake = pygame.key.get_pressed()
+    if Snake[pygame.K_UP] and Move != [0, AltSnake]:
+        Move = [0, -BodySnake]
+    elif Snake[pygame.K_DOWN] and Move != [0, -AltSnake]:
+        Move = [0, BodySnake]
+    elif Snake[pygame.K_LEFT] and Move != [BodySnake, 0]:
+        Move = [-BodySnake, 0]
+    elif Snake[pygame.K_RIGHT] and Move != [-BodySnake, 0]:
+        Move = [BodySnake, 0]
+
+    CapSnake = []
+    for segmento in SnakePos[1:]:
+        pygame.draw.rect(screen, (0, 0, 0),
+                    (segmento[0], segmento[1], BodySnake, AltSnake))
+        CapSnake.append(pygame.Rect(segmento[0], segmento[1], BodySnake, AltSnake))
+
+    Coinn = pygame.Rect(coinPos1, coinPos2, coinLargura, coinAltura)
+    pygame.draw.rect(screen, (255, 255, 0), (Coinn))
+
+    Head = pygame.Rect(SnakePos[0][0], SnakePos[0][1], BodySnake, AltSnake)
+
+    ComunaAttack = pygame.Rect(ProletarioAttackPoss1[0], ProletarioAttackPoss1[1],
+                               ProletarioAttackLarg, ProletarioAttackAlt)
+    pygame.draw.rect(screen, (255, 0, 0), (ComunaAttack))
+
+    Investiment = pygame.Rect(AplicationPoss[0], AplicationPoss[1],
+                                    AplicationLarg, AplicationAlt)
+    pygame.draw.rect(screen, (255, 255, 255), (Investiment))
+
+    if CheckColl(Head, Coinn):
+        print("Colissão")
+        coinPos1 = random.randint(30, 1210)
+        coinPos2 = random.randint(40, 520)
+
+        Points += 1
+        Money += 10**6
+
+    else:
+        SnakePos.pop()
+
+    if CheckComunisCollsion(Head, ComunaAttack):
+        print("Colissão com os vermelhos")
+        Money -= Money-(Money*50/100)
+        ProletarioAttackPoss1[0] = random.randint(40, 1210)
+        ProletarioAttackPoss1[1] = random.randint(40, 1210)
+        if Money == 0:
+            print("Game Over")
+            pygame.quit()
+            sys.exit()
+        if len(SnakePos) > 1:
+            SnakePos.pop()
+
+    if Invest(Head, Investiment):
+        Money *= 1.2
+        Points += 2
+        AplicationPoss[0] = random.randint(30, 1210)
+        AplicationPoss[1] = random.randint(30, 570)
+
+    if SnakePos[0][0] < 0 or SnakePos[0][1] < 0 or \
+            SnakePos[0][0] >= largura or SnakePos[0][1] >= altura:
+                print("Game Over")
+                pygame.quit()
+                sys.exit()
+
+    if CheckCapColission(Head, CapSnake):
+        print("Game Over")
+        pygame.quit()
+        sys.exit()
+
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            print("O jogo fechou")
+            pygame.quit()
+            sys.exit()
+
+    pygame.time.Clock().tick(SnakeVelo)
+    pygame.display.flip()
+    pygame.display.update()
