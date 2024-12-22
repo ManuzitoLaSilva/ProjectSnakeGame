@@ -1,0 +1,289 @@
+import pygame
+import random
+import sys
+
+pygame.init()
+
+largura = 1300
+altura = 650
+
+pygame.time.get_ticks()
+UltimoInvest = 0
+Permision = False
+
+SnakeVelo = 15
+SnakePos = [(300, 300)]
+BodySnake, AltSnake = [20, 20]
+Move = [1, 0]
+
+coinLargura = 15
+coinAltura = 15
+coinPos1 = random.randint(35, 1210)
+coinPos2 = random.randint(35, 620)
+
+Points = int()
+Money = int(400000)
+
+AplicationPoss = [random.randint(30, 1210), random.randint(30, 570)]
+AplicationLarg = 15
+AplicationAlt = 15
+
+screen = pygame.display.set_mode((largura, altura))
+pygame.display.set_caption("Snake Capitalist")
+
+cor1 = random.randint(0, 255)
+cor2 = random.randint(0, 255)
+cor3 = random.randint(0, 255)
+cor = cor1, cor2, cor3
+
+def CheckColl (Cabeca, moeda):
+    return Cabeca.colliderect(moeda)
+
+def CheckCapColission (SnakeCabeza, SnakeCuerpo):
+    return any(SnakeCabeza == segmento for segmento in SnakeCuerpo)
+
+ContadorCoin = pygame.font.Font(None, 37)
+ContadorMoney = pygame.font.Font(None, 37)
+
+PerdeuTudoScreem = pygame.font.Font(None, 90)
+
+ProletarioAttackLarg = 15
+ProletarioAttackAlt = 15
+ProletarioAttackPoss1 = [1230, 20]
+
+#Zona da Rico
+HoraDeInvest = 30000
+def TempoDaBolsa():
+    global UltimoInvest
+    if pygame.time.get_ticks() - UltimoInvest >= HoraDeInvest:
+        return True
+    else:
+        return False
+#Fim da Zona da Rico
+
+#Ala Comunal
+PausaPraMortadela = random.randint(40000, 60000)
+ComunaAttack_is_active = True
+ComunaTimeAtt = 0
+def CheckComunisCollsion (SnakeCranio, Counism):
+    return SnakeCranio.colliderect(Counism)
+
+def ProletariosDormem():
+    global UltimoInvest
+    if pygame.time.get_ticks() - ComunaTimeAtt >= PausaPraMortadela:
+        return True
+    else:
+        return False
+
+def ComunismTalke():
+    global ProletarioAttackPoss1, ComunaAttack_is_active
+    SnakeCranio = SnakePos
+
+    if not ComunaAttack_is_active:
+        return
+
+    if ProletarioAttackPoss1[0] < SnakeCranio[0][0]:
+        ProletarioAttackPoss1[0] += 6.3 #Essas cordenadas indicam movimentos para a direita
+    if ProletarioAttackPoss1[0] > SnakeCranio[0][0]:
+        ProletarioAttackPoss1[0] -= 6.3 #Essas cordenadas indicam movimentos para a esquerda
+
+    if ProletarioAttackPoss1[1] < SnakeCranio[0][1]:
+        ProletarioAttackPoss1[1] += 6.3 #Essas cordenadas indicam movimentos pra baixo
+    if ProletarioAttackPoss1[1] > SnakeCranio[0][1]:
+        ProletarioAttackPoss1[1] -= 6.3 #Essas cordenadas indicam movimentos pra cima
+
+    # Abaixo os Limites de movimentção do Attack Comuna
+    if ProletarioAttackPoss1[0] < 0: ProletarioAttackPoss1[0] = 0 #Os comunas vão apenas ate o ponto 0 da tela na direção esquerda
+    if ProletarioAttackPoss1[1] < 0: ProletarioAttackPoss1[1] = 0 #Os comunas vão apenas ate o ponto 0 da tela no ponto de cima
+
+    if ProletarioAttackPoss1[0] > largura - ProletarioAttackLarg:#/
+          ProletarioAttackPoss1[0] = ProletarioAttackPoss1[0] = largura - ProletarioAttackLarg #Os comunas vão ate o ponto final do lado direito que é 1300 - O seu tamanho
+    if ProletarioAttackPoss1[1] > altura - ProletarioAttackAlt:
+          ProletarioAttackPoss1[1] = ProletarioAttackPoss1[1] = altura - ProletarioAttackAlt #Os comunas vão ate o ponto inferior da tela que é 650 - O seu tamanho
+
+    ComunaAttack = pygame.Rect(ProletarioAttackPoss1[0], ProletarioAttackPoss1[1],
+                               ProletarioAttackLarg, ProletarioAttackAlt)
+    pygame.draw.rect(screen, (255, 0, 0), (ComunaAttack))
+
+    return ComunaAttack
+#Fim da Ala Comunal
+
+def MovesValiosos():
+    global Move, SnakePos
+    Snake = pygame.key.get_pressed()
+    if Snake[pygame.K_UP] and Move != [0, AltSnake]:
+        Move = [0, -BodySnake]
+    elif Snake[pygame.K_DOWN] and Move != [0, -AltSnake]:
+        Move = [0, BodySnake]
+    elif Snake[pygame.K_LEFT] and Move != [BodySnake, 0]:
+        Move = [-BodySnake, 0]
+    elif Snake[pygame.K_RIGHT] and Move != [-BodySnake, 0]:
+        Move = [BodySnake, 0]
+
+def Invest(CabezaSnake, CapMaster):
+    return CabezaSnake.colliderect(CapMaster)
+
+class BilionarieFace(pygame.sprite.Sprite):
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+        self.sprites = []
+        self.sprites.append(pygame.image.load("Pixel Arts que Vão Entrar no Jogo/Snake Bilionarie 1.7.7(Piscando_Final) (1).png"))
+        self.sprites.append(pygame.image.load("Pixel Arts que Vão Entrar no Jogo/Snake Bilionarie 1.7.7(Piscando_Final) (2).png"))
+        self.Primeira = 0
+        self.image = self.sprites[self.Primeira]
+        self.rect = self.image.get_rect()
+
+    def update(self, SnakePos):
+         self.Primeira = self.Primeira + 0.28
+         if self.Primeira >= len(self.sprites):
+            self.Primeira = 0
+
+         self.image = self.sprites[int(self.Primeira)]
+         self.image = pygame.transform.scale(self.image, (146, 145))
+
+TodasAsFacetas = pygame.sprite.Group()
+Face1 = BilionarieFace()
+TodasAsFacetas.add(Face1)
+
+PedePaSai = 7000
+Timezin = pygame.time.get_ticks()
+#while not False: tambem pode ser usado, como roda principal do loop inicial.
+while True:
+    screen.fill(cor)
+
+    screen.fill((cor1, cor2, cor3))
+
+    contadorcoin = ContadorCoin.render(f'Moedas: {Points}', True, (255, 255, 0))
+    posicaoA = (1110, 620)
+    screen.blit(contadorcoin, posicaoA)
+
+    contadormoney = ContadorMoney.render(f'Cash ${Money:.0f}', True, (0, 255, 0))
+    posicaoB = (30, 620)
+    screen.blit(contadormoney, posicaoB)
+
+    Coin = pygame.font.Font(None, 36)
+    Muney = pygame.font.Font(None, 36)
+
+    NewHead = (SnakePos[0][0] + Move[0], SnakePos[0][1]+ Move[1])
+    SnakePos = [NewHead] + SnakePos
+
+    #Movimento dos Comunas
+    ComunismTalke()
+
+    #Moviento do Nosso Heroi amante da liberdade e dos bons costumes
+    MovesValiosos()
+
+    #Corpo do nosso heroi amante do Capital
+    Head = screen.blit(Face1.image, (SnakePos[0][0], SnakePos[0][1], BodySnake, AltSnake))
+    CapSnake = []
+    for segmento in SnakePos[1:]:
+        pygame.draw.rect(screen, (0, 0, 0),
+                    (segmento[0], segmento[1], BodySnake, AltSnake))
+        CapSnake.append(pygame.Rect(segmento[0], segmento[1], BodySnake, AltSnake))
+
+    Coinn = pygame.Rect(coinPos1, coinPos2, coinLargura, coinAltura)
+    pygame.draw.rect(screen, (255, 255, 0), (Coinn))
+
+    #Desenho dos Comunistas
+    ComunaAttack = pygame.Rect(ProletarioAttackPoss1[0], ProletarioAttackPoss1[1],
+                               ProletarioAttackLarg, ProletarioAttackAlt)
+    pygame.draw.rect(screen, (255, 0, 0), (ComunaAttack))
+
+    #Desenho dos Bonus de Investimento
+    Investiment = pygame.Rect(AplicationPoss[0], AplicationPoss[1],
+                                    AplicationLarg, AplicationAlt)
+    pygame.draw.rect(screen, (255, 255, 255), (Investiment))
+
+    if CheckColl(Head, Coinn):
+        print("Colissão")
+        coinPos1 = random.randint(30, 1210)
+        coinPos2 = random.randint(40, 520)
+
+        Points += 1
+        Money += 10**6
+
+    else:
+        SnakePos.pop()
+
+    if CheckComunisCollsion(Head, ComunaAttack):
+        print("Colissão com os vermelhos")
+        Money -= Money - (Money * 50 / 100)
+        ProletarioAttackPoss1[0] = random.randint(10000, 12000)
+        ProletarioAttackPoss1[1] = random.randint(10000, 12000)
+        ComunaAttack_is_active = False
+        ComunaTimeAtt = pygame.time.get_ticks()
+
+        if Money == 0:
+            print("Game Over")
+            perdeuTudoScreem = PerdeuTudoScreem.render("Voce está falido!!", True, (255, 0, 0))
+            Post = (600, 600)
+            screen.blit(perdeuTudoScreem, Post)
+            while pygame.time.get_ticks() - Timezin < PedePaSai:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                        sys.exit()
+                pygame.display.flip()
+            pygame.quit()
+            sys.exit()
+
+        if len(SnakePos) > 1:
+            SnakePos.pop()
+
+    if not ComunaAttack_is_active and ProletariosDormem():
+        ProletarioAttackPoss1[0] = random.randint(40, 1210)
+        ProletarioAttackPoss1[1] = random.randint(40, 520)
+        ComunaAttack_is_active = True
+        ComunaTimeAtt = pygame.time.get_ticks()
+
+    if Invest(Head, Investiment):
+        Money *= 1.2
+        Points += 2
+        AplicationPoss[0] = random.randint(10000, 12000)
+        AplicationPoss[1] = random.randint(10000, 12000)
+        UltimoInvest = pygame.time.get_ticks()
+
+    if TempoDaBolsa():
+        AplicationPoss[0] = random.randint(40, 1210)
+        AplicationPoss[1] = random.randint(40, 520)
+        UltimoInvest = pygame.time.get_ticks()
+
+    if Head[0] <= 0 or Head[1] <= 0 or \
+            Head[0] >= largura or Head[1] >= altura:
+                perdeuTudoScreem = PerdeuTudoScreem.render("Voce está falido!!", True, (255, 0, 0))
+                Post = (600, 600)
+                screen.blit(perdeuTudoScreem, Post)
+                while pygame.time.get_ticks() - Timezin < PedePaSai:
+                    for event in pygame.event.get():
+                        if event.type == pygame.QUIT:
+                            pygame.quit()
+                            sys.exit()
+                    pygame.display.flip()
+                print("Game Over")
+                pygame.quit()
+                sys.exit()
+
+    if CheckCapColission(Head, CapSnake):
+        perdeuTudoScreem = PerdeuTudoScreem.render("Voce está falido!!", True, (255, 0, 0))
+        Post = (600, 600)
+        screen.blit(perdeuTudoScreem, Post)
+        print("Game Over")
+        while pygame.time.get_ticks() - Timezin < PedePaSai:
+             for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+             pygame.display.flip()
+        pygame.quit()
+        sys.exit()
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            print("O jogo fechou")
+            pygame.quit()
+            sys.exit()
+
+    pygame.time.Clock().tick(SnakeVelo)
+    pygame.display.flip()
+    pygame.display.update()
+    TodasAsFacetas.update(SnakePos)
+    TodasAsFacetas.draw(screen)
